@@ -226,7 +226,7 @@ trait Flow[+T] {
    * and a stream representing the remaining elements. If ''n'' is zero or negative, then this will return a pair
    * of an empty collection and a stream containing the whole upstream unchanged.
    */
-  def prefixAndTail(n: Int): Flow[(immutable.Seq[T], Publisher[T @uncheckedVariance])]
+  def prefixAndTail[U >: T](n: Int): Flow[(immutable.Seq[T], Publisher[U])]
 
   /**
    * This operation demultiplexes the incoming stream into separate output
@@ -239,7 +239,7 @@ trait Flow[+T] {
    * care to unblock (or cancel) all of the produced streams even if you want
    * to consume only one of them.
    */
-  def groupBy[K](f: T ⇒ K): Flow[(K, Publisher[T @uncheckedVariance])]
+  def groupBy[K, U >: T](f: T ⇒ K): Flow[(K, Publisher[U])]
 
   /**
    * This operation applies the given predicate to all incoming elements and
@@ -254,7 +254,7 @@ trait Flow[+T] {
    * true, false, false // elements go into third substream
    * }}}
    */
-  def splitWhen(p: T ⇒ Boolean): Flow[Publisher[T @uncheckedVariance]]
+  def splitWhen[U >: T](p: T ⇒ Boolean): Flow[Publisher[U]]
 
   /**
    * Merge this stream with the one emitted by the given publisher, taking
@@ -380,7 +380,7 @@ trait Flow[+T] {
    * The given FlowMaterializer decides how the flow’s logical structure is
    * broken down into individual processing steps.
    */
-  def toPublisher(materializer: FlowMaterializer): Publisher[T @uncheckedVariance]
+  def toPublisher[U >: T](materializer: FlowMaterializer): Publisher[U]
 
   /**
    * Attaches a subscriber to this stream.
