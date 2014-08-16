@@ -158,7 +158,7 @@ trait AtLeastOnceDelivery extends Processor {
   }
 
   private var deliverySequenceNr = 0L
-  private var unconfirmed = immutable.SortedMap.empty[Long, Delivery]
+  private var unconfirmed = immutable.SortedMap.empty[Any, Delivery]
 
   private def nextDeliverySequenceNr(): Long = {
     deliverySequenceNr += 1
@@ -186,18 +186,30 @@ trait AtLeastOnceDelivery extends Processor {
    * if [[numberOfUnconfirmed]] is greater than or equal to [[#maxUnconfirmedMessages]].
    */
   def deliver(destination: ActorPath, deliveryIdToMessage: Long ⇒ Any): Unit = {
+    val deliveryId = nextDeliverySequenceNr()
+    deliver(destination, deliveryId, deliveryIdToMessage(deliveryId))
+  }
+
+  /**
+   * @return true when starting delivery, false when (re)delivery for this deliveryId is already in process
+   */
+  def deliver(destination: ActorPath, deliveryId: Any, message: Any): Boolean = {
+    if (unconfirmed.contains(deliveryId))
+      return false
+
     if (unconfirmed.size >= maxUnconfirmedMessages)
       throw new MaxUnconfirmedMessagesExceededException(
         s"Too many unconfirmed messages, maximum allowed is [$maxUnconfirmedMessages]")
 
-    val deliveryId = nextDeliverySequenceNr()
     val now = if (recoveryRunning) { System.nanoTime() - redeliverInterval.toNanos } else System.nanoTime()
-    val d = Delivery(destination, deliveryIdToMessage(deliveryId), now, attempt = 0)
+    val d = Delivery(destination, message, now, attempt = 0)
 
     if (recoveryRunning)
       unconfirmed = unconfirmed.updated(deliveryId, d)
     else
       send(deliveryId, d, now)
+
+    true
   }
 
   /**
@@ -206,7 +218,7 @@ trait AtLeastOnceDelivery extends Processor {
    * @see [[#deliver]]
    * @return `true` the first time the `deliveryId` is confirmed, i.e. `false` for duplicate confirm
    */
-  def confirmDelivery(deliveryId: Long): Boolean = {
+  def confirmDelivery(deliveryId: Any): Boolean = {
     if (unconfirmed.contains(deliveryId)) {
       unconfirmed -= deliveryId
       true
@@ -237,7 +249,7 @@ trait AtLeastOnceDelivery extends Processor {
       self ! UnconfirmedWarning(warnings)
   }
 
-  private def send(deliveryId: Long, d: Delivery, timestamp: Long): Unit = {
+  private def send(deliveryId: Any, d: Delivery, timestamp: Long): Unit = {
     context.actorSelection(d.destination) ! d.message
     unconfirmed = unconfirmed.updated(deliveryId, d.copy(timestamp = timestamp, attempt = d.attempt + 1))
   }
