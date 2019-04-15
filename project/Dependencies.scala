@@ -21,7 +21,7 @@ object Dependencies {
   val aeronVersion = "1.15.1"
 
   val Versions = Seq(
-    crossScalaVersions := Seq("2.12.8", "2.13.0-M5"),
+    crossScalaVersions := Seq("2.12.8", "2.13.0-RC1"),
     scalaVersion := System.getProperty("akka.build.scalaVersion", crossScalaVersions.value.head),
     scalaStmVersion := sys.props.get("akka.build.scalaStmVersion").getOrElse("0.9"),
     scalaCheckVersion := sys.props
@@ -33,7 +33,7 @@ object Dependencies {
     scalaTestVersion := "3.0.7",
     java8CompatVersion := {
       CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, n)) if n >= 13 => "0.9.0"
+        case Some((2, n)) if n >= 13 => "0.9.1-SNAPSHOT"
         case Some((2, n)) if n == 12 => "0.8.0"
         case _                       => "0.7.0"
       }
@@ -144,7 +144,9 @@ object Dependencies {
   // TODO check if `l ++=` everywhere expensive?
   val l = libraryDependencies
 
-  val actor = l ++= Seq(config, java8Compat.value)
+  val actor = l ++=
+      (if (!scalaVersion.value.startsWith("2.13")) Seq(config, java8Compat.value)
+       else Seq(config))
 
   val discovery = l ++= Seq(Test.junit, Test.scalatest.value)
 
