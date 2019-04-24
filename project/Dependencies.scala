@@ -144,9 +144,7 @@ object Dependencies {
   // TODO check if `l ++=` everywhere expensive?
   val l = libraryDependencies
 
-  val actor = l ++=
-      (if (!scalaVersion.value.startsWith("2.13")) Seq(config, java8Compat.value)
-       else Seq(config))
+  val actor = l ++= Seq(config, java8Compat.value)
 
   val discovery = l ++= Seq(Test.junit, Test.scalatest.value)
 
