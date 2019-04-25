@@ -381,7 +381,6 @@ object ByteString {
       }
     }
 
-    override protected def writeReplace(): AnyRef = new SerializationProxy(this)
   }
 
   private[akka] object ByteStrings extends Companion {
@@ -623,7 +622,6 @@ object ByteString {
       }
     }
 
-    override protected def writeReplace(): AnyRef = new SerializationProxy(this)
   }
 
   @SerialVersionUID(1L)
@@ -672,10 +670,7 @@ sealed abstract class ByteString
 
   override protected def fromSpecific(coll: IterableOnce[Byte]): ByteString = ByteString(coll)
   override protected def newSpecificBuilder: mutable.Builder[Byte, ByteString] = ByteString.newBuilder
-
-  // FIXME this is a workaround for
-  //  https://github.com/scala/bug/issues/11192#issuecomment-436926231
-  protected[this] override def writeReplace(): AnyRef = this
+  override def empty: ByteString = ByteString.empty
 
   def apply(idx: Int): Byte
   private[akka] def byteStringCompanion: ByteString.Companion
