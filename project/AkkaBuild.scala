@@ -16,88 +16,9 @@ import sbt._
 import scala.collection.breakOut
 
 object AkkaBuild {
-
-  val enableMiMa = true
-
-  val parallelExecutionByDefault = false // TODO: enable this once we're sure it does not break things
-
   lazy val buildSettings = Def.settings(
-    organization := "com.typesafe.akka",
     Dependencies.Versions,
-    // use the same value as in the build scope
-    version := (version in ThisBuild).value)
-
-  lazy val currentDateTime = {
-    // storing the first accessed timestamp in system property so that it will be the
-    // same when build is reloaded or when using `+`.
-    // `+` actually doesn't re-initialize this part of the build but that may change in the future.
-    sys.props.getOrElseUpdate("akka.build.timestamp",
-      DateTimeFormatter
-        .ofPattern("yyyyMMdd-HHmmss")
-        .format(ZonedDateTime.now(ZoneOffset.UTC)))
-  }
-
-  def akkaVersion: String = {
-    sys.props.getOrElse("akka.build.version", "2.6-SNAPSHOT") match {
-      case "timestamp" => s"2.6-$currentDateTime" // used when publishing timestamped snapshots
-      case v => v
-    }
-  }
-
-  lazy val rootSettings = Def.settings(
-    parallelExecution in GlobalScope := System.getProperty("akka.parallelExecution", parallelExecutionByDefault.toString).toBoolean,
-      version in ThisBuild := akkaVersion
   )
-
-  lazy val mayChangeSettings = Seq(
-    description := """|This module of Akka is marked as
-                      |'may change', which means that it is in early
-                      |access mode, which also means that it is not covered
-                      |by commercial support. An module marked 'may change' doesn't
-                      |have to obey the rule of staying binary compatible
-                      |between minor releases. Breaking API changes may be
-                      |introduced in minor releases without notice as we
-                      |refine and simplify based on your feedback. Additionally
-                      |such a module may be dropped in major releases
-                      |without prior deprecation.
-                      |""".stripMargin)
-
-  val (mavenLocalResolver, mavenLocalResolverSettings) =
-    System.getProperty("akka.build.M2Dir") match {
-      case null => (Resolver.mavenLocal, Seq.empty)
-      case path =>
-        // Maven resolver settings
-        def deliverPattern(outputPath: File): String =
-          (outputPath / "[artifact]-[revision](-[classifier]).[ext]").absolutePath
-
-        val resolver = Resolver.file("user-publish-m2-local", new File(path))
-        (resolver, Seq(
-          otherResolvers := resolver :: publishTo.value.toList,
-          publishM2Configuration := Classpaths.publishConfig(
-            publishMavenStyle.value,
-            deliverPattern(crossTarget.value),
-            if (isSnapshot.value) "integration" else "release",
-            ivyConfigurations.value.map(c => ConfigRef(c.name)).toVector,
-            artifacts = packagedArtifacts.value.toVector,
-            resolverName = resolver.name,
-            checksums = checksums.in(publishM2).value.toVector,
-            logging = ivyLoggingLevel.value,
-            overwrite = true)))
-    }
-
-  lazy val resolverSettings = Def.settings(
-    // should we be allowed to use artifacts published to the local maven repository
-    if (System.getProperty("akka.build.useLocalMavenResolver", "false").toBoolean)
-      resolvers += mavenLocalResolver
-    else Seq.empty,
-    // should we be allowed to use artifacts from sonatype snapshots
-    if (System.getProperty("akka.build.useSnapshotSonatypeResolver", "false").toBoolean)
-      resolvers += Resolver.sonatypeRepo("snapshots")
-    else Seq.empty,
-    pomIncludeRepository := (_ => false), // do not leak internal repositories during staging
-  )
-
-  private def allWarnings: Boolean = System.getProperty("akka.allwarnings", "false").toBoolean
 
   final val DefaultScalacOptions = Seq("-encoding", "UTF-8", "-feature", "-unchecked", "-Xlog-reflective-calls")
 
@@ -105,8 +26,6 @@ object AkkaBuild {
   final val DefaultJavacOptions = Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-XDignore.symbol.file")
 
   lazy val defaultSettings: Seq[Setting[_]] = Def.settings(
-    resolverSettings,
-
     // compile options
     scalacOptions in Compile ++= DefaultScalacOptions,
     // Makes sure that, even when compiling with a jdk version greater than 8, the resulting jar will not refer to
@@ -116,7 +35,6 @@ object AkkaBuild {
     scalacOptions in Compile ++= (
         // -release 8 is not enough, for some reason we need the 8 rt.jar explicitly #25330
         Seq("-release", "8")),
-    scalacOptions in Compile ++= (if (allWarnings) Seq("-deprecation") else Nil),
     scalacOptions in Test := (scalacOptions in Test).value.filterNot(opt =>
       opt == "-Xlog-reflective-calls" || opt.contains("genjavadoc")),
 
@@ -214,13 +132,11 @@ object AkkaBuild {
       }
     },
 
-    parallelExecution in Test := System.getProperty("akka.parallelExecution", parallelExecutionByDefault.toString).toBoolean,
     logBuffered in Test := System.getProperty("akka.logBufferedTests", "false").toBoolean,
 
     // show full stack traces and test case durations
     testOptions in Test += Tests.Argument("-oDF"),
 
-    mavenLocalResolverSettings,
     docLintingSettings,
   )
 
