@@ -5,7 +5,6 @@ addCommandAlias(
 import akka.AkkaBuild._
 import akka.{ AkkaBuild, Dependencies}
 import sbt.Keys.{ initialCommands, parallelExecution }
-import spray.boilerplate.BoilerplatePlugin
 
 initialize := {
   // Load system properties from a file to make configuration from Jenkins easier
@@ -69,7 +68,6 @@ lazy val actor = akkaModule("akka-actor")
     val ver = scalaVersion.value.take(4)
     (scalaSource in Compile).value.getParentFile / s"scala-$ver"
   })
-  .enablePlugins(BoilerplatePlugin)
 
 lazy val actorTests = akkaModule("akka-actor-tests")
   .dependsOn(testkit % "compile->compile;test->test")
@@ -202,7 +200,6 @@ lazy val slf4j = akkaModule("akka-slf4j")
 lazy val stream = akkaModule("akka-stream")
   .dependsOn(actor, protobuf)
   .settings(Dependencies.stream)
-  .enablePlugins(BoilerplatePlugin)
 
 lazy val streamTestkit = akkaModule("akka-stream-testkit")
   .dependsOn(stream, testkit % "compile->compile;test->test")

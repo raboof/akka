@@ -5,7 +5,6 @@
 package akka.util
 
 import akka.actor.ActorRef
-import akka.japi.function.Procedure2
 
 /**
  * A non thread safe mutable message buffer that can be used to buffer messages inside actors.
@@ -108,7 +107,6 @@ final class MessageBuffer private (private var _head: MessageBuffer.Node, privat
    *
    * @param f the function to apply to each element
    */
-  def forEach(f: Procedure2[Any, ActorRef]): Unit = foreach { case (message, ref) => f(message, ref) }
 }
 
 object MessageBuffer {
@@ -249,5 +247,4 @@ final class MessageBufferMap[I] {
    *
    * @param f the function to apply to each element
    */
-  def forEach(f: Procedure2[I, MessageBuffer]): Unit = foreach { case (id, buffer) => f(id, buffer) }
 }
