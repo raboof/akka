@@ -62,7 +62,6 @@ lazy val aggregatedProjects: Seq[ProjectReference] = List[ProjectReference](
 lazy val root = Project(id = "akka", base = file("."))
   .aggregate(aggregatedProjects: _*)
   .settings(rootSettings: _*)
-  .settings(unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get)
 
 lazy val actor = akkaModule("akka-actor")
   .settings(Dependencies.actor)
@@ -145,9 +144,7 @@ lazy val docs = akkaModule("akka-docs")
     streamTestkit % "compile->compile;test->test")
   .settings(Dependencies.docs)
   .settings(
-    Compile / paradoxGroups := Map("Language" -> Seq("Scala", "Java")),
-    resolvers += Resolver.jcenterRepo,
-    apidocRootPackage := "akka")
+    resolvers += Resolver.jcenterRepo)
 
 lazy val jackson = akkaModule("akka-serialization-jackson")
   .dependsOn(actor, actorTests % "test->test", testkit % "test->test")
@@ -301,7 +298,6 @@ lazy val coordination = akkaModule("akka-coordination")
 
 def akkaModule(name: String): Project =
   Project(id = name, base = file(name))
-    .enablePlugins(ReproducibleBuildsPlugin)
     .settings(akka.AkkaBuild.buildSettings)
     .settings(akka.AkkaBuild.defaultSettings)
 
