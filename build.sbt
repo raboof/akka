@@ -1,22 +1,15 @@
-import akka.{ AutomaticModuleName, CopyrightHeaderForBuild, ParadoxSupport, ScalafixIgnoreFilePlugin }
+import akka.{ AutomaticModuleName, ParadoxSupport}
 
 enablePlugins(
   UnidocRoot,
-  UnidocWithPrValidation,
-  NoPublish,
-  CopyrightHeader,
-  CopyrightHeaderInPr,
-  ScalafixIgnoreFilePlugin,
-  JavaFormatterPlugin)
-disablePlugins(MimaPlugin)
+  NoPublish
+  )
 addCommandAlias(
   name = "fixall",
-  value = ";scalafixEnable;compile:scalafix;test:scalafix;multi-jvm:scalafix;test:compile;reload")
+  value = ";scalafixEnable;compile:scalafix;test:scalafix;test:compile;reload")
 
 import akka.AkkaBuild._
 import akka.{ AkkaBuild, Dependencies, GitHub, Protobuf, SigarLoader, VersionGenerator }
-import com.typesafe.sbt.SbtMultiJvm.MultiJvmKeys.MultiJvm
-import com.typesafe.tools.mima.plugin.MimaPlugin
 import sbt.Keys.{ initialCommands, parallelExecution }
 import spray.boilerplate.BoilerplatePlugin
 
@@ -77,7 +70,6 @@ lazy val root = Project(id = "akka", base = file("."))
   .settings(rootSettings: _*)
   .settings(unidocRootIgnoreProjects := Seq(remoteTests, benchJmh, benchJmhTyped, protobuf, akkaScalaNightly, docs))
   .settings(unmanagedSources in (Compile, headerCreate) := (baseDirectory.value / "project").**("*.scala").get)
-  .enablePlugins(CopyrightHeaderForBuild)
 
 lazy val actor = akkaModule("akka-actor")
   .settings(Dependencies.actor)
@@ -93,27 +85,20 @@ lazy val actorTests = akkaModule("akka-actor-tests")
   .dependsOn(testkit % "compile->compile;test->test")
   .settings(Dependencies.actorTests)
   .enablePlugins(NoPublish)
-  .disablePlugins(MimaPlugin, WhiteSourcePlugin)
 
 lazy val akkaScalaNightly = akkaModule("akka-scala-nightly")
   .aggregate(aggregatedProjects: _*)
-  .disablePlugins(MimaPlugin)
-  .disablePlugins(ValidatePullRequest, MimaPlugin, CopyrightHeaderInPr)
 
 lazy val benchJmh = akkaModule("akka-bench-jmh")
   .dependsOn(Seq(actor, stream, streamTests, persistence, distributedData, jackson, testkit).map(
     _ % "compile->compile;compile->test"): _*)
   .settings(Dependencies.benchJmh)
-  .enablePlugins(JmhPlugin, ScaladocNoVerificationOfDiagrams, NoPublish, CopyrightHeader)
-  .disablePlugins(MimaPlugin, WhiteSourcePlugin, ValidatePullRequest, CopyrightHeaderInPr)
 
 // typed benchmarks only on 2.12+
 lazy val benchJmhTyped = akkaModule("akka-bench-jmh-typed")
   .dependsOn(Seq(persistenceTyped, distributedData, clusterTyped, testkit, benchJmh).map(
     _ % "compile->compile;compile->test"): _*)
   .settings(Dependencies.benchJmh)
-  .enablePlugins(JmhPlugin, ScaladocNoVerificationOfDiagrams, NoPublish, CopyrightHeader)
-  .disablePlugins(MimaPlugin, WhiteSourcePlugin, ValidatePullRequest, CopyrightHeaderInPr)
 
 lazy val cluster = akkaModule("akka-cluster")
   .dependsOn(remote, remoteTests % "test->test", testkit % "test->test")
@@ -121,18 +106,14 @@ lazy val cluster = akkaModule("akka-cluster")
   .settings(AutomaticModuleName.settings("akka.cluster"))
   .settings(Protobuf.settings)
   .settings(parallelExecution in Test := false)
-  .configs(MultiJvm)
-  .enablePlugins(MultiNodeScalaTest)
 
 lazy val clusterMetrics = akkaModule("akka-cluster-metrics")
-  .dependsOn(cluster % "compile->compile;test->test;multi-jvm->multi-jvm", slf4j % "test->compile")
+  .dependsOn(cluster % "compile->compile;test->test", slf4j % "test->compile")
   .settings(Dependencies.clusterMetrics)
   .settings(AutomaticModuleName.settings("akka.cluster.metrics"))
   .settings(Protobuf.settings)
   .settings(SigarLoader.sigarSettings)
   .settings(parallelExecution in Test := false)
-  .configs(MultiJvm)
-  .enablePlugins(MultiNodeScalaTest)
 
 lazy val clusterSharding = akkaModule("akka-cluster-sharding")
 // TODO akka-persistence dependency should be provided in pom.xml artifact.
@@ -140,31 +121,25 @@ lazy val clusterSharding = akkaModule("akka-cluster-sharding")
 //      Scope "test" is alright in the pom.xml, but would have been nicer with
 //      provided.
   .dependsOn(
-    cluster % "compile->compile;test->test;multi-jvm->multi-jvm",
+    cluster % "compile->compile;test->test",
     distributedData,
     persistence % "compile->compile",
     clusterTools % "compile->compile;test->test")
   .settings(Dependencies.clusterSharding)
   .settings(AutomaticModuleName.settings("akka.cluster.sharding"))
   .settings(Protobuf.settings)
-  .configs(MultiJvm)
-  .enablePlugins(MultiNode, ScaladocNoVerificationOfDiagrams)
 
 lazy val clusterTools = akkaModule("akka-cluster-tools")
-  .dependsOn(cluster % "compile->compile;test->test;multi-jvm->multi-jvm", coordination)
+  .dependsOn(cluster % "compile->compile;test->test", coordination)
   .settings(Dependencies.clusterTools)
   .settings(AutomaticModuleName.settings("akka.cluster.tools"))
   .settings(Protobuf.settings)
-  .configs(MultiJvm)
-  .enablePlugins(MultiNode, ScaladocNoVerificationOfDiagrams)
 
 lazy val distributedData = akkaModule("akka-distributed-data")
-  .dependsOn(cluster % "compile->compile;test->test;multi-jvm->multi-jvm")
+  .dependsOn(cluster % "compile->compile;test->test")
   .settings(Dependencies.distributedData)
   .settings(AutomaticModuleName.settings("akka.cluster.ddata"))
   .settings(Protobuf.settings)
-  .configs(MultiJvm)
-  .enablePlugins(MultiNodeScalaTest)
 
 lazy val docs = akkaModule("akka-docs")
   .dependsOn(
@@ -231,8 +206,6 @@ lazy val docs = akkaModule("akka-docs")
     ScaladocNoVerificationOfDiagrams,
     StreamOperatorsIndexGenerator)
   .settings(ParadoxSupport.paradoxWithCustomDirectives)
-  .disablePlugins(MimaPlugin, WhiteSourcePlugin)
-  .disablePlugins(ScalafixPlugin)
 
 lazy val jackson = akkaModule("akka-serialization-jackson")
   .dependsOn(actor, actorTests % "test->test", testkit % "test->test")
@@ -242,7 +215,6 @@ lazy val jackson = akkaModule("akka-serialization-jackson")
   // FIXME #27019 remove when Jackson ScalaModule has been released for Scala 2.13
   .settings(crossScalaVersions -= Dependencies.scala213Version)
   .enablePlugins(ScaladocNoVerificationOfDiagrams)
-  .disablePlugins(MimaPlugin)
 
 lazy val multiNodeTestkit = akkaModule("akka-multi-node-testkit")
   .dependsOn(remote, testkit)
@@ -277,19 +249,16 @@ lazy val persistenceShared = akkaModule("akka-persistence-shared")
   .settings(AutomaticModuleName.settings("akka.persistence.shared"))
   .settings(fork in Test := true)
   .enablePlugins(NoPublish)
-  .disablePlugins(MimaPlugin, WhiteSourcePlugin)
 
 lazy val persistenceTck = akkaModule("akka-persistence-tck")
   .dependsOn(persistence % "compile->compile;test->test", testkit % "compile->compile;test->test")
   .settings(Dependencies.persistenceTck)
   .settings(AutomaticModuleName.settings("akka.persistence.tck"))
   .settings(fork in Test := true)
-  .disablePlugins(MimaPlugin)
 
 lazy val protobuf = akkaModule("akka-protobuf")
   .settings(AutomaticModuleName.settings("akka.protobuf"))
   .enablePlugins(ScaladocNoVerificationOfDiagrams)
-  .disablePlugins(MimaPlugin)
 
 lazy val remote = akkaModule("akka-remote")
   .dependsOn(actor, stream, actorTests % "test->test", testkit % "test->test", streamTestkit % "test", protobuf)
@@ -303,9 +272,6 @@ lazy val remoteTests = akkaModule("akka-remote-tests")
   .settings(Dependencies.remoteTests)
   .settings(Protobuf.settings)
   .settings(parallelExecution in Test := false)
-  .configs(MultiJvm)
-  .enablePlugins(MultiNodeScalaTest, NoPublish)
-  .disablePlugins(MimaPlugin, WhiteSourcePlugin)
 
 lazy val slf4j = akkaModule("akka-slf4j")
   .dependsOn(actor, testkit % "test->test")
@@ -323,13 +289,11 @@ lazy val streamTestkit = akkaModule("akka-stream-testkit")
   .dependsOn(stream, testkit % "compile->compile;test->test")
   .settings(Dependencies.streamTestkit)
   .settings(AutomaticModuleName.settings("akka.stream.testkit"))
-  .disablePlugins(MimaPlugin)
 
 lazy val streamTests = akkaModule("akka-stream-tests")
   .dependsOn(streamTestkit % "test->test", remote % "test->test", stream)
   .settings(Dependencies.streamTests)
   .enablePlugins(NoPublish)
-  .disablePlugins(MimaPlugin, WhiteSourcePlugin)
 
 lazy val streamTestsTck = akkaModule("akka-stream-tests-tck")
   .dependsOn(streamTestkit % "test->test", stream)
@@ -341,7 +305,6 @@ lazy val streamTestsTck = akkaModule("akka-stream-tests-tck")
     // to run with small heap without G1.
     fork in Test := true)
   .enablePlugins(NoPublish)
-  .disablePlugins(MimaPlugin, WhiteSourcePlugin)
 
 lazy val testkit = akkaModule("akka-testkit")
   .dependsOn(actor)
@@ -375,7 +338,7 @@ lazy val persistenceTyped = akkaModule("akka-persistence-typed")
 lazy val clusterTyped = akkaModule("akka-cluster-typed")
   .dependsOn(
     actorTyped,
-    cluster % "compile->compile;test->test;multi-jvm->multi-jvm",
+    cluster % "compile->compile;test->test",
     clusterTools,
     distributedData,
     persistence % "test->test",
@@ -385,12 +348,10 @@ lazy val clusterTyped = akkaModule("akka-cluster-typed")
     actorTypedTests % "test->test",
     remoteTests % "test->test")
   .settings(AutomaticModuleName.settings("akka.cluster.typed"))
-  .configs(MultiJvm)
-  .enablePlugins(MultiNodeScalaTest)
 
 lazy val clusterShardingTyped = akkaModule("akka-cluster-sharding-typed")
   .dependsOn(
-    clusterTyped % "compile->compile;test->test;multi-jvm->multi-jvm",
+    clusterTyped % "compile->compile;test->test",
     persistenceTyped,
     clusterSharding,
     actorTestkitTyped % "test->test",
@@ -400,8 +361,6 @@ lazy val clusterShardingTyped = akkaModule("akka-cluster-sharding-typed")
   .settings(AutomaticModuleName.settings("akka.cluster.sharding.typed"))
   // To be able to import ContainerFormats.proto
   .settings(Protobuf.importPath := Some(baseDirectory.value / ".." / "akka-remote" / "src" / "main" / "protobuf"))
-  .configs(MultiJvm)
-  .enablePlugins(MultiNodeScalaTest)
 
 lazy val streamTyped = akkaModule("akka-stream-typed")
   .dependsOn(
@@ -417,12 +376,10 @@ lazy val actorTestkitTyped = akkaModule("akka-actor-testkit-typed")
   .dependsOn(actorTyped, testkit % "compile->compile;test->test")
   .settings(AutomaticModuleName.settings("akka.actor.testkit.typed"))
   .settings(Dependencies.actorTestkitTyped)
-  .disablePlugins(MimaPlugin)
 
 lazy val actorTypedTests = akkaModule("akka-actor-typed-tests")
   .dependsOn(actorTyped, actorTestkitTyped % "compile->compile;test->test")
   .settings(AkkaBuild.mayChangeSettings)
-  .disablePlugins(MimaPlugin)
   .enablePlugins(NoPublish)
 
 lazy val discovery = akkaModule("akka-discovery")

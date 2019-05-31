@@ -12,7 +12,6 @@ import java.time.ZoneOffset
 
 import sbt.Keys._
 import sbt._
-import org.scalafmt.sbt.ScalafmtPlugin.autoImport._
 
 import scala.collection.breakOut
 
