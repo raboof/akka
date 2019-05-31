@@ -20,14 +20,7 @@ object AkkaBuild {
     Dependencies.Versions,
   )
 
-  final val DefaultScalacOptions = Seq("-encoding", "UTF-8", "-feature", "-unchecked", "-Xlog-reflective-calls")
-
-  // -XDignore.symbol.file suppresses sun.misc.Unsafe warnings
-  final val DefaultJavacOptions = Seq("-encoding", "UTF-8", "-Xlint:unchecked", "-XDignore.symbol.file")
-
   lazy val defaultSettings: Seq[Setting[_]] = Def.settings(
-    // compile options
-    scalacOptions in Compile ++= DefaultScalacOptions,
     // Makes sure that, even when compiling with a jdk version greater than 8, the resulting jar will not refer to
     // methods not found in jdk8. To test whether this has the desired effect, compile akka-remote and check the
     // invocation of 'ByteBuffer.clear()' in EnvelopeBuffer.class with 'javap -c': it should refer to
