@@ -45,8 +45,6 @@ object AkkaBuild {
   }
 
   lazy val rootSettings = Def.settings(
-    Release.settings,
-    Protobuf.settings,
     parallelExecution in GlobalScope := System.getProperty("akka.parallelExecution", parallelExecutionByDefault.toString).toBoolean,
       version in ThisBuild := akkaVersion
   )
@@ -108,8 +106,6 @@ object AkkaBuild {
 
   lazy val defaultSettings: Seq[Setting[_]] = Def.settings(
     resolverSettings,
-    TestExtras.Filter.settings,
-    Protobuf.settings,
 
     // compile options
     scalacOptions in Compile ++= DefaultScalacOptions,
