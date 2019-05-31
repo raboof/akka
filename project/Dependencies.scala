@@ -8,7 +8,6 @@ import sbt._
 import Keys._
 
 object Dependencies {
-  import DependencyHelpers._
 
   lazy val scalaTestVersion = settingKey[String]("The version of ScalaTest to use.")
   lazy val scalaCheckVersion = settingKey[String]("The version of ScalaCheck to use.")
@@ -59,7 +58,6 @@ object Dependencies {
     val netty = "io.netty" % "netty" % nettyVersion // ApacheV2
 
     val scalaXml = "org.scala-lang.modules" %% "scala-xml" % scalaXmlVersion // Scala License
-    val scalaReflect = ScalaVersionDependentModuleID.versioned("org.scala-lang" % "scala-reflect" % _) // Scala License
 
     val slf4jApi = "org.slf4j" % "slf4j-api" % slf4jVersion // MIT
 
@@ -169,36 +167,4 @@ object Dependencies {
           compilerPlugin("com.github.ghik" %% "silencer-plugin" % silencerVersion),
           "com.github.ghik" %% "silencer-lib" % silencerVersion % "provided")
 
-}
-
-object DependencyHelpers {
-  case class ScalaVersionDependentModuleID(modules: String => Seq[ModuleID]) {
-    def %(config: String): ScalaVersionDependentModuleID =
-      ScalaVersionDependentModuleID(version => modules(version).map(_ % config))
-  }
-  object ScalaVersionDependentModuleID {
-    implicit def liftConstantModule(mod: ModuleID): ScalaVersionDependentModuleID = versioned(_ => mod)
-
-    def versioned(f: String => ModuleID): ScalaVersionDependentModuleID = ScalaVersionDependentModuleID(v => Seq(f(v)))
-    def fromPF(f: PartialFunction[String, ModuleID]): ScalaVersionDependentModuleID =
-      ScalaVersionDependentModuleID(version => if (f.isDefinedAt(version)) Seq(f(version)) else Nil)
-  }
-
-  /**
-   * Use this as a dependency setting if the dependencies contain both static and Scala-version
-   * dependent entries.
-   */
-  def versionDependentDeps(modules: ScalaVersionDependentModuleID*): Def.Setting[Seq[ModuleID]] =
-    libraryDependencies ++= modules.flatMap(m => m.modules(scalaVersion.value))
-
-  val ScalaVersion = """\d\.\d+\.\d+(?:-(?:M|RC)\d+)?""".r
-  val nominalScalaVersion: String => String = {
-    // matches:
-    // 2.12.0-M1
-    // 2.12.0-RC1
-    // 2.12.0
-    case version @ ScalaVersion() => version
-    // transforms 2.12.0-custom-version to 2.12.0
-    case version => version.takeWhile(_ != '-')
-  }
 }
