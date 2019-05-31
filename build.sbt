@@ -317,7 +317,7 @@ lazy val stream = akkaModule("akka-stream")
   .settings(Dependencies.stream)
   .settings(AutomaticModuleName.settings("akka.stream"))
   .settings(Protobuf.settings)
-  .enablePlugins(BoilerplatePlugin, Jdk9)
+  .enablePlugins(BoilerplatePlugin)
 
 lazy val streamTestkit = akkaModule("akka-stream-testkit")
   .dependsOn(stream, testkit % "compile->compile;test->test")
