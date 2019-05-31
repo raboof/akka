@@ -164,7 +164,10 @@ object Dependencies {
   // TODO check if `l ++=` everywhere expensive?
   val l = libraryDependencies
 
-  val actor = l ++= Seq(config, java8Compat.value)
+  val silencerVersion = "1.3.3"
+  val actor = l ++= Seq(config, java8Compat.value) ++ Seq(
+          compilerPlugin("com.github.ghik" %% "silencer-plugin" % silencerVersion),
+          "com.github.ghik" %% "silencer-lib" % silencerVersion % "provided")
 
   val discovery = l ++= Seq(Test.junit, Test.scalatest.value)
 
