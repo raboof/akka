@@ -46,7 +46,6 @@ object AkkaBuild {
 
   lazy val rootSettings = Def.settings(
     Release.settings,
-    UnidocRoot.akkaSettings,
     Protobuf.settings,
     parallelExecution in GlobalScope := System.getProperty("akka.parallelExecution", parallelExecutionByDefault.toString).toBoolean,
       version in ThisBuild := akkaVersion
@@ -119,18 +118,11 @@ object AkkaBuild {
     // invocation of 'ByteBuffer.clear()' in EnvelopeBuffer.class with 'javap -c': it should refer to
     // "java/nio/ByteBuffer.clear:()Ljava/nio/Buffer" and not "java/nio/ByteBuffer.clear:()Ljava/nio/ByteBuffer":
     scalacOptions in Compile ++= (
-      if (JavaVersion.isJdk8)
-        Seq("-target:jvm-1.8")
-      else
         // -release 8 is not enough, for some reason we need the 8 rt.jar explicitly #25330
         Seq("-release", "8")),
     scalacOptions in Compile ++= (if (allWarnings) Seq("-deprecation") else Nil),
     scalacOptions in Test := (scalacOptions in Test).value.filterNot(opt =>
       opt == "-Xlog-reflective-calls" || opt.contains("genjavadoc")),
-    javacOptions in compile ++= DefaultJavacOptions ++ JavaVersion.sourceAndTarget(CrossJava.Keys.fullJavaHomes.value("8")),
-    javacOptions in test ++= DefaultJavacOptions ++ JavaVersion.sourceAndTarget(CrossJava.Keys.fullJavaHomes.value("8")),
-    javacOptions in compile ++= (if (allWarnings) Seq("-Xlint:deprecation") else Nil),
-    javacOptions in doc ++= Seq(),
 
     crossVersion := CrossVersion.binary,
 
@@ -234,16 +226,9 @@ object AkkaBuild {
 
     mavenLocalResolverSettings,
     docLintingSettings,
-    CrossJava.crossJavaSettings,
   )
 
   lazy val docLintingSettings = Seq(
-    javacOptions in compile ++= Seq("-Xdoclint:none"),
-    javacOptions in test ++= Seq("-Xdoclint:none"),
-    javacOptions in doc ++= {
-      if (JavaVersion.isJdk8) Seq("-Xdoclint:none")
-      else Seq("-Xdoclint:none", "--ignore-source-errors")
-    }
   )
 
 
