@@ -8,7 +8,7 @@ addCommandAlias(
   value = ";scalafixEnable;compile:scalafix;test:scalafix;test:compile;reload")
 
 import akka.AkkaBuild._
-import akka.{ AkkaBuild, Dependencies, GitHub, Protobuf, SigarLoader, VersionGenerator }
+import akka.{ AkkaBuild, Dependencies, GitHub, Protobuf }
 import sbt.Keys.{ initialCommands, parallelExecution }
 import spray.boilerplate.BoilerplatePlugin
 
@@ -75,7 +75,6 @@ lazy val actor = akkaModule("akka-actor")
     val ver = scalaVersion.value.take(4)
     (scalaSource in Compile).value.getParentFile / s"scala-$ver"
   })
-  .settings(VersionGenerator.settings)
   .enablePlugins(BoilerplatePlugin)
 
 lazy val actorTests = akkaModule("akka-actor-tests")
@@ -107,7 +106,6 @@ lazy val clusterMetrics = akkaModule("akka-cluster-metrics")
   .dependsOn(cluster % "compile->compile;test->test", slf4j % "test->compile")
   .settings(Dependencies.clusterMetrics)
   .settings(Protobuf.settings)
-  .settings(SigarLoader.sigarSettings)
   .settings(parallelExecution in Test := false)
 
 lazy val clusterSharding = akkaModule("akka-cluster-sharding")

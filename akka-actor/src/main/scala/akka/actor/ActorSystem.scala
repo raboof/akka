@@ -163,7 +163,7 @@ final class BootstrapSetup private (
 
 object ActorSystem {
 
-  val Version: String = akka.Version.current // generated file
+  val Version: String = "42"
 
   val EnvHome: Option[String] = System.getenv("AKKA_HOME") match {
     case null | "" | "." => None
@@ -757,7 +757,7 @@ private[akka] class ActorSystemImpl(
               System.err.println(
                 s"""Detected ${cause.getClass.getName} error, which MAY be caused by incompatible Akka versions on the classpath.
                   | Please note that a given Akka version MUST be the same across all modules of Akka that you are using,
-                  | e.g. if you use akka-actor [${akka.Version.current} (resolved from current classpath)] all other core
+                  | e.g. if you use akka-actor [42 (resolved from current classpath)] all other core
                   | Akka modules MUST be of the same version. External projects like Alpakka, Persistence plugins or Akka
                   | HTTP etc. have their own version numbers - please make sure you're using a compatible set of libraries.
                  """.stripMargin.replaceAll("[\r\n]", ""))

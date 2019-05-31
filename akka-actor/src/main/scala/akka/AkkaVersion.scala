@@ -21,7 +21,7 @@ object AkkaVersion {
    * @param requiredVersion Minimal version that this library works with
    */
   def require(libraryName: String, requiredVersion: String): Unit = {
-    require(libraryName, requiredVersion, Version.current)
+    require(libraryName, requiredVersion, "42")
   }
 
   /**
