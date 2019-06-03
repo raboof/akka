@@ -12,7 +12,6 @@ import akka.io.dns.CachePolicy.Ttl
 import akka.io.dns.DnsProtocol.{ Ip, RequestType, Srv }
 import akka.io.dns.internal.DnsClient._
 import akka.io.dns._
-import akka.pattern.{ ask, pipe }
 import akka.util.{ Helpers, Timeout }
 
 import scala.collection.immutable
@@ -62,15 +61,6 @@ private[io] final class AsyncDnsResolver(
           log.debug("{} cached {}", mode, resolved)
           sender() ! resolved
         case None =>
-          resolveWithResolvers(name, mode, resolvers)
-            .map { resolved =>
-              if (resolved.records.nonEmpty) {
-                val minTtl = resolved.records.minBy[Duration](_.ttl.value).ttl
-                cache.put((name, mode), resolved, minTtl)
-              }
-              resolved
-            }
-            .pipeTo(sender())
       }
   }
 
@@ -102,13 +92,7 @@ private[io] final class AsyncDnsResolver(
       }
     }
 
-  private def sendQuestion(resolver: ActorRef, message: DnsQuestion): Future[Answer] = {
-    val result = (resolver ? message).mapTo[Answer]
-    result.failed.foreach { _ =>
-      resolver ! DropRequest(message.id)
-    }
-    result
-  }
+  private def sendQuestion(resolver: ActorRef, message: DnsQuestion): Future[Answer] = ???
 
   private def resolveWithSearch(
       name: String,

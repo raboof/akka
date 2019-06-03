@@ -16,7 +16,6 @@ import scala.concurrent.duration._
 import scala.util.Success
 import java.util.regex.Pattern
 
-import akka.pattern.ask
 import akka.routing.MurmurHash
 import akka.util.{ Helpers, JavaDurationConverters, Timeout }
 import akka.dispatch.ExecutionContexts
@@ -69,10 +68,6 @@ abstract class ActorSelection extends Serializable {
   def resolveOne()(implicit timeout: Timeout): Future[ActorRef] = {
     implicit val ec = ExecutionContexts.sameThreadExecutionContext
     val p = Promise[ActorRef]()
-    this.ask(Identify(None)).onComplete {
-      case Success(ActorIdentity(_, Some(ref))) => p.success(ref)
-      case _                                    => p.failure(ActorNotFound(this))
-    }
     p.future
   }
 

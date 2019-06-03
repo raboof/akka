@@ -13,7 +13,6 @@ import scala.concurrent.{ Await, Future }
 
 import akka.japi.{ Creator, Option => JOption }
 import akka.japi.Util.{ immutableSeq, immutableSingletonSeq }
-import akka.pattern.AskTimeoutException
 import akka.util.Timeout
 import akka.util.Reflect.instantiator
 import akka.serialization.{ JavaSerializer, SerializationExtension, Serializers }
@@ -450,32 +449,7 @@ object TypedActor extends ExtensionId[TypedActorExtension] with ExtensionIdProvi
           .asInstanceOf[AnyRef] //Force boxing of the boolean
       case "hashCode" => actor.hashCode.asInstanceOf[AnyRef]
       case _ =>
-        implicit val dispatcher = extension.system.dispatcher
-        import akka.pattern.ask
-        MethodCall(method, args) match {
-          case m if m.isOneWay =>
-            actor ! m; null //Null return value
-          case m if m.returnsFuture =>
-            ask(actor, m)(timeout).map {
-              case NullResponse => null
-              case other        => other
-            }
-          case m if m.returnsJOption || m.returnsOption =>
-            val f = ask(actor, m)(timeout)
-            (try {
-              Await.ready(f, timeout.duration).value
-            } catch { case _: TimeoutException => None }) match {
-              case None | Some(Success(NullResponse)) | Some(Failure(_: AskTimeoutException)) =>
-                if (m.returnsJOption) JOption.none[Any] else None
-              case Some(t: Try[_]) =>
-                t.get.asInstanceOf[AnyRef]
-            }
-          case m =>
-            Await.result(ask(actor, m)(timeout), timeout.duration) match {
-              case NullResponse => null
-              case other        => other.asInstanceOf[AnyRef]
-            }
-        }
+        null
     }
     @throws(classOf[ObjectStreamException]) private def writeReplace(): AnyRef =
       SerializedTypedActorInvocationHandler(actor, timeout.duration)

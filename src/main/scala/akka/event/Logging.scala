@@ -196,22 +196,7 @@ trait LoggingBus extends ActorEventBus {
     val name = "log" + LogExt(system).id() + "-" + simpleName(clazz)
     val actor = system.systemActorOf(Props(clazz).withDispatcher(system.settings.LoggersDispatcher), name)
     implicit def timeout = system.settings.LoggerStartTimeout
-    import akka.pattern.ask
-    val response = try Await.result(actor ? InitializeLogger(this), timeout.duration)
-    catch {
-      case _: TimeoutException =>
-        publish(
-          Warning(
-            logName,
-            this.getClass,
-            "Logger " + name + " did not respond within " + timeout + " to InitializeLogger(bus)"))
-        "[TIMEOUT]"
-    }
-    if (response != LoggerInitialized)
-      throw new LoggerInitializationException(
-        "Logger " + name + " did not respond with LoggerInitialized, sent instead " + response)
-    AllLogLevels.filter(level >= _).foreach(l => subscribe(actor, classFor(l)))
-    publish(Debug(logName, this.getClass, "logger " + name + " started"))
+
     actor
   }
 

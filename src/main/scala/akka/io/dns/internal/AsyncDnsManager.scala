@@ -44,8 +44,6 @@ private[io] final class AsyncDnsManager(
     with RequiresMessageQueue[UnboundedMessageQueueSemantics]
     with ActorLogging
     with Timers {
-  import akka.pattern.ask
-  import akka.pattern.pipe
 
   /**
    * Ctr expected by the DnsExt for all DnsMangers
@@ -94,14 +92,6 @@ private[io] final class AsyncDnsManager(
       // adapt legacy protocol to new protocol
       log.debug("Resolution request for {} from {}", name, sender())
       val adapted = DnsProtocol.Resolve(name)
-      val reply = (resolver ? adapted).mapTo[DnsProtocol.Resolved].map { asyncResolved =>
-        val ips = asyncResolved.records.collect {
-          case a: ARecord    => a.ip
-          case a: AAAARecord => a.ip
-        }
-        Dns.Resolved(asyncResolved.name, ips)
-      }
-      reply.pipeTo(sender())
 
     case CacheCleanup =>
       cacheCleanup.foreach(_.cleanup())

@@ -12,7 +12,6 @@ import akka.dispatch.Dispatchers
 import com.typesafe.config.Config
 import akka.japi.Util.immutableSeq
 import scala.concurrent.{ ExecutionContext, Promise }
-import akka.pattern.{ ask, pipe, AskTimeoutException }
 import scala.concurrent.duration._
 import akka.util.JavaDurationConverters._
 import akka.util.Timeout
@@ -82,24 +81,17 @@ private[akka] final case class TailChoppingRoutees(
       if (idx < size) {
         shuffled(idx) match {
           case ActorRefRoutee(ref) =>
-            promise.completeWith(ref.ask(message))
           case ActorSelectionRoutee(sel) =>
-            promise.completeWith(sel.ask(message))
           case _ =>
         }
       }
     }
 
-    val sendTimeout = scheduler.scheduleOnce(within)(
-      promise.tryFailure(new AskTimeoutException(s"Ask timed out on [$sender] after [$within.toMillis} ms]")))
-
     val f = promise.future
     f.onComplete {
       case _ =>
         tryWithNext.cancel()
-        sendTimeout.cancel()
     }
-    f.pipeTo(sender)
   }
 }
 

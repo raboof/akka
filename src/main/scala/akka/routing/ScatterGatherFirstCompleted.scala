@@ -11,8 +11,6 @@ import akka.actor.SupervisorStrategy
 import akka.japi.Util.immutableSeq
 import akka.actor.ActorRef
 import scala.concurrent.Promise
-import akka.pattern.ask
-import akka.pattern.pipe
 import akka.dispatch.ExecutionContexts
 import scala.concurrent.duration.FiniteDuration
 import akka.util.Timeout
@@ -47,20 +45,15 @@ private[akka] final case class ScatterGatherFirstCompletedRoutees(
     if (routees.isEmpty) {
       implicit val ec = ExecutionContexts.sameThreadExecutionContext
       val reply = Future.failed(new TimeoutException("Timeout due to no routees"))
-      reply.pipeTo(sender)
     } else {
       implicit val ec = ExecutionContexts.sameThreadExecutionContext
       implicit val timeout = Timeout(within)
       val promise = Promise[Any]()
       routees.foreach {
         case ActorRefRoutee(ref) =>
-          promise.completeWith(ref.ask(message))
         case ActorSelectionRoutee(sel) =>
-          promise.completeWith(sel.ask(message))
         case _ =>
       }
-
-      promise.future.pipeTo(sender)
     }
 }
 

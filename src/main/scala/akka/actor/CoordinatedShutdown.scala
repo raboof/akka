@@ -18,7 +18,6 @@ import com.typesafe.config.Config
 import scala.concurrent.duration.FiniteDuration
 import scala.annotation.tailrec
 import com.typesafe.config.ConfigFactory
-import akka.pattern.after
 
 import scala.util.control.NonFatal
 import akka.event.Logging
@@ -516,26 +515,7 @@ final class CoordinatedShutdown private[akka] (
                   .map(_ => Done)(ExecutionContexts.sameThreadExecutionContext)
                 val timeout = phases(phase).timeout
                 val deadline = Deadline.now + timeout
-                val timeoutFut = try {
-                  after(timeout, system.scheduler) {
-                    if (phase == CoordinatedShutdown.PhaseActorSystemTerminate && deadline.hasTimeLeft) {
-                      // too early, i.e. triggered by system termination
-                      result
-                    } else if (result.isCompleted)
-                      Future.successful(Done)
-                    else if (recoverEnabled) {
-                      log.warning("Coordinated shutdown phase [{}] timed out after {}", phase, timeout)
-                      Future.successful(Done)
-                    } else
-                      Future.failed(
-                        new TimeoutException(s"Coordinated shutdown phase [$phase] timed out after $timeout"))
-                  }
-                } catch {
-                  case _: IllegalStateException =>
-                    // The call to `after` threw IllegalStateException, triggered by system termination
-                    result
-                }
-                Future.firstCompletedOf(List(result, timeoutFut))
+                result
             }
             if (remaining.isEmpty)
               phaseResult // avoid flatMap when system terminated in last phase

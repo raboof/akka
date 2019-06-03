@@ -11,7 +11,6 @@ import akka.actor.{ Actor, ActorLogging, ActorRef, NoSerializationVerificationNe
 import akka.annotation.InternalApi
 import akka.io.dns.{ RecordClass, RecordType, ResourceRecord }
 import akka.io.{ IO, Tcp, Udp }
-import akka.pattern.{ BackoffOpts, BackoffSupervisor }
 
 import scala.collection.{ immutable => im }
 import scala.util.Try
@@ -143,15 +142,5 @@ import scala.concurrent.duration._
     case Udp.Unbound => context.stop(self)
   }
 
-  def createTcpClient() = {
-    context.actorOf(
-      BackoffSupervisor.props(
-        BackoffOpts.onFailure(
-          Props(classOf[TcpDnsClient], tcp, ns, self),
-          childName = "tcpDnsClient",
-          minBackoff = 10.millis,
-          maxBackoff = 20.seconds,
-          randomFactor = 0.1)),
-      "tcpDnsClientSupervisor")
-  }
+  def createTcpClient(): ActorRef = ???
 }
