@@ -12,7 +12,6 @@ import akka.annotation.InternalApi
 import akka.io.dns.{ RecordClass, RecordType, ResourceRecord }
 import akka.io.{ IO, Tcp, Udp }
 import akka.pattern.{ BackoffOpts, BackoffSupervisor }
-import com.github.ghik.silencer.silent
 
 import scala.collection.{ immutable => im }
 import scala.util.Try
@@ -73,7 +72,6 @@ import scala.concurrent.duration._
   /**
    * Silent to allow map update syntax
    */
-  @silent
   def ready(socket: ActorRef): Receive = {
     case DropRequest(id) =>
       log.debug("Dropping request [{}]", id)

@@ -17,7 +17,6 @@ import akka.io.Inet.SocketOption
 import akka.io.SelectionHandler._
 import akka.io.Tcp._
 import akka.util.ByteString
-import com.github.ghik.silencer.silent
 
 import scala.annotation.tailrec
 import scala.collection.immutable
@@ -204,7 +203,6 @@ private[io] abstract class TcpConnection(val tcp: TcpExt, val channel: SocketCha
   // AUXILIARIES and IMPLEMENTATION
 
   /** used in subclasses to start the common machinery above once a channel is connected */
-  @silent
   def completeConnect(
       registration: ChannelRegistration,
       commander: ActorRef,

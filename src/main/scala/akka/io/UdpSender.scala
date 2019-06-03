@@ -12,12 +12,10 @@ import akka.dispatch.{ RequiresMessageQueue, UnboundedMessageQueueSemantics }
 import akka.io.Inet.SocketOption
 import akka.io.Udp._
 import akka.actor._
-import com.github.ghik.silencer.silent
 
 /**
  * INTERNAL API
  */
-@silent
 private[io] class UdpSender(
     val udp: UdpExt,
     channelRegistry: ChannelRegistry,

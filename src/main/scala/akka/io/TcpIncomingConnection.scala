@@ -9,7 +9,6 @@ import java.nio.channels.SocketChannel
 import scala.collection.immutable
 import akka.actor.ActorRef
 import akka.io.Inet.SocketOption
-import com.github.ghik.silencer.silent
 
 /**
  * An actor handling the connection state machine for an incoming, already connected
@@ -17,7 +16,6 @@ import com.github.ghik.silencer.silent
  *
  * INTERNAL API
  */
-@silent
 private[io] class TcpIncomingConnection(
     _tcp: TcpExt,
     _channel: SocketChannel,

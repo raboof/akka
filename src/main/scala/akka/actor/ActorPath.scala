@@ -9,7 +9,6 @@ import akka.japi.Util.immutableSeq
 import java.net.MalformedURLException
 import java.lang.{ StringBuilder => JStringBuilder }
 
-import com.github.ghik.silencer.silent
 
 /**
  * Java API
@@ -151,7 +150,6 @@ object ActorPath {
  * references are compared the unique id of the actor is not taken into account
  * when comparing actor paths.
  */
-@silent
 @SerialVersionUID(1L)
 sealed trait ActorPath extends Comparable[ActorPath] with Serializable {
 

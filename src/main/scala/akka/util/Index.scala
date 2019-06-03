@@ -12,8 +12,6 @@ import java.util.Comparator
 import scala.collection.JavaConverters.collectionAsScalaIterableConverter
 import akka.util.ccompat.JavaConverters._
 
-import com.github.ghik.silencer.silent
-
 /**
  * An implementation of a ConcurrentMultiMap
  * Adds/remove is serialized over the specified key
@@ -147,7 +145,6 @@ class Index[K, V](val mapSize: Int, val valueComparator: Comparator[V]) {
     if (set ne null) {
       set.synchronized {
         container.remove(key, set)
-        @silent
         val ret = collectionAsScalaIterableConverter(set.clone()).asScala // Make copy since we need to clear the original
         set.clear() // Clear the original set to signal to any pending writers that there was a conflict
         Some(ret)

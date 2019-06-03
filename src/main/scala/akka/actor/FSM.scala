@@ -12,7 +12,6 @@ import scala.concurrent.duration._
 import akka.routing.{ Deafen, Listen, Listeners }
 import akka.annotation.InternalApi
 import akka.util.{ unused, JavaDurationConverters }
-import com.github.ghik.silencer.silent
 
 object FSM {
 
@@ -225,7 +224,6 @@ object FSM {
      * Modify state transition descriptor with new state data. The data will be
      * set when transitioning to the new state.
      */
-    @silent
     def using(@deprecatedName(Symbol("nextStateDate")) nextStateData: D): State[S, D] = {
       copy(stateData = nextStateData)
     }

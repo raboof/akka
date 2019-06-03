@@ -20,7 +20,6 @@ import akka.dispatch.MailboxType
 import akka.dispatch.ProducesMessageQueue
 import akka.dispatch.UnboundedMailbox
 import akka.serialization.Serialization
-import com.github.ghik.silencer.silent
 
 @SerialVersionUID(1L)
 final case class SerializationCheckFailedException private (msg: Object, cause: Throwable)
@@ -34,9 +33,6 @@ final case class SerializationCheckFailedException private (msg: Object, cause: 
  */
 @InternalApi
 private[akka] trait Dispatch { this: ActorCell =>
-
-  @silent @volatile private var _mailboxDoNotCallMeDirectly
-      : Mailbox = _ //This must be volatile since it isn't protected by the mailbox status
 
   @inline final def mailbox: Mailbox =
     Unsafe.instance.getObjectVolatile(this, AbstractActorCell.mailboxOffset).asInstanceOf[Mailbox]

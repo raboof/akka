@@ -13,7 +13,6 @@ import akka.io.Udp.UdpSettings
 import akka.util.ByteString
 import akka.actor._
 import akka.util.ccompat._
-import com.github.ghik.silencer.silent
 
 /**
  * UDP Extension for Akka’s IO layer.
@@ -91,7 +90,6 @@ object UdpConnected extends ExtensionId[UdpConnectedExt] with ExtensionIdProvide
    * which is restricted to sending to and receiving from the given `remoteAddress`.
    * All received datagrams will be sent to the designated `handler` actor.
    */
-  @silent
   final case class Connect(
       handler: ActorRef,
       remoteAddress: InetSocketAddress,

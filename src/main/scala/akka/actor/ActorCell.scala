@@ -19,7 +19,6 @@ import akka.event.Logging.{ Debug, Error, LogEvent }
 import akka.japi.Procedure
 import akka.util.{ unused, Reflect }
 import akka.annotation.InternalApi
-import com.github.ghik.silencer.silent
 
 /**
  * The actor context - the view of the actor cell from the actor.
@@ -403,7 +402,6 @@ private[akka] object ActorCell {
  * supported APIs in this place. This is not the API you were looking
  * for! (waves hand)
  */
-@silent
 private[akka] class ActorCell(
     val system: ActorSystemImpl,
     val self: InternalActorRef,

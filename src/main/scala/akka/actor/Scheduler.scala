@@ -5,7 +5,6 @@
 package akka.actor
 
 import akka.util.JavaDurationConverters
-import com.github.ghik.silencer.silent
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -49,7 +48,6 @@ trait Scheduler {
    *
    * Java & Scala API
    */
-  @silent
   final def schedule(initialDelay: FiniteDuration, interval: FiniteDuration, receiver: ActorRef, message: Any)(
       implicit
       executor: ExecutionContext,

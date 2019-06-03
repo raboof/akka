@@ -22,7 +22,6 @@ package akka.routing
 import java.lang.Integer.{ rotateLeft => rotl }
 
 import akka.util.ccompat._
-import com.github.ghik.silencer.silent
 
 /**
  * An object designed to generate well-distributed non-cryptographic
@@ -132,7 +131,6 @@ object MurmurHash {
    *  where the order of appearance of elements does not matter.
    *  This is useful for hashing sets, for example.
    */
-  @silent
   def symmetricHash[T](xs: IterableOnce[T], seed: Int): Int = {
     var a, b, n = 0
     var c = 1

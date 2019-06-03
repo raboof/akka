@@ -13,7 +13,6 @@ import akka.event.{ EventStream, LoggingAdapter }
 import akka.ConfigurationException
 import akka.annotation.{ DoNotInherit, InternalApi }
 import akka.util.Helpers.ConfigOps
-import com.github.ghik.silencer.silent
 
 import scala.concurrent.ExecutionContext
 
@@ -299,7 +298,6 @@ private[akka] object BalancingDispatcherConfigurator {
  * Returns the same dispatcher instance for each invocation
  * of the `dispatcher()` method.
  */
-@silent
 class BalancingDispatcherConfigurator(_config: Config, _prerequisites: DispatcherPrerequisites)
     extends MessageDispatcherConfigurator(BalancingDispatcherConfigurator.amendConfig(_config), _prerequisites) {
 

@@ -14,7 +14,6 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.duration.FiniteDuration
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater
 
-import com.github.ghik.silencer.silent
 
 /**
  * The event-based ``Dispatcher`` binds a set of Actors to a thread pool backed up by a
@@ -48,7 +47,6 @@ class Dispatcher(
    * At first glance this var does not seem to be updated anywhere, but in
    * fact it is, via the esUpdater [[AtomicReferenceFieldUpdater]] below.
    */
-  @silent
   @volatile private var executorServiceDelegate: LazyExecutorServiceDelegate =
     new LazyExecutorServiceDelegate(executorServiceFactoryProvider.createExecutorServiceFactory(id, threadFactory))
 

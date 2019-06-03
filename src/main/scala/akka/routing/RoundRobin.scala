@@ -12,7 +12,6 @@ import com.typesafe.config.Config
 import akka.actor.SupervisorStrategy
 import akka.japi.Util.immutableSeq
 import akka.actor.ActorSystem
-import com.github.ghik.silencer.silent
 
 object RoundRobinRoutingLogic {
   def apply(): RoundRobinRoutingLogic = new RoundRobinRoutingLogic
@@ -22,7 +21,6 @@ object RoundRobinRoutingLogic {
  * Uses round-robin to select a routee. For concurrent calls,
  * round robin is just a best effort.
  */
-@silent
 @SerialVersionUID(1L)
 final class RoundRobinRoutingLogic extends RoutingLogic {
   val next = new AtomicLong

@@ -23,7 +23,6 @@ import java.util.concurrent.TimeoutException
 import java.io.ObjectStreamException
 import java.lang.reflect.{ InvocationHandler, InvocationTargetException, Method, Proxy }
 
-import com.github.ghik.silencer.silent
 
 /**
  * A TypedActorFactory is something that can created TypedActor instances.
@@ -125,11 +124,9 @@ object TypedActor extends ExtensionId[TypedActorExtension] with ExtensionIdProvi
    *
    * Java API
    */
-  @silent
   def get(context: ActorContext): TypedActorFactory = apply(context)
 
   @deprecated("Use 'akka.actor.typed' API.", since = "2.6.0")
-  @silent
   override def apply(system: ActorSystem): TypedActorExtension = super.apply(system)
 
   /**
@@ -285,7 +282,6 @@ object TypedActor extends ExtensionId[TypedActorExtension] with ExtensionIdProvi
       }
     }
 
-    @silent
     override def postStop(): Unit =
       try {
         withContext {
@@ -500,7 +496,6 @@ object TypedActor extends ExtensionId[TypedActorExtension] with ExtensionIdProvi
         case some => toTypedActorInvocationHandler(some)
       }
 
-    @silent
     def toTypedActorInvocationHandler(system: ActorSystem): TypedActorInvocationHandler =
       new TypedActorInvocationHandler(TypedActor(system), new AtomVar[ActorRef](actor), new Timeout(timeout))
   }
@@ -676,14 +671,12 @@ final case class TypedProps[T <: AnyRef] protected[TypedProps] (
  * ContextualTypedActorFactory allows TypedActors to create children, effectively forming the same Actor Supervision Hierarchies
  * as normal Actors can.
  */
-@silent
 final case class ContextualTypedActorFactory(typedActor: TypedActorExtension, actorFactory: ActorContext)
     extends TypedActorFactory {
   override def getActorRefFor(proxy: AnyRef): ActorRef = typedActor.getActorRefFor(proxy)
   override def isTypedActor(proxyOrNot: AnyRef): Boolean = typedActor.isTypedActor(proxyOrNot)
 }
 
-@silent
 class TypedActorExtension(val system: ExtendedActorSystem) extends TypedActorFactory with Extension {
   import TypedActor._ //Import the goodies from the companion object
   protected def actorFactory: ActorRefFactory = system

@@ -11,7 +11,6 @@ import scala.runtime.BoxedUnit
 import java.util.Optional
 
 import akka.util.JavaDurationConverters
-import com.github.ghik.silencer.silent
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration.Duration
@@ -280,7 +279,6 @@ abstract class AbstractActor extends Actor {
   // TODO In 2.6.0 we can remove deprecation and make the method final
   @deprecated("Override preRestart with message parameter with Optional type instead", "2.5.0")
   @throws(classOf[Exception])
-  @silent
   override def preRestart(reason: Throwable, message: Option[Any]): Unit = {
     import scala.compat.java8.OptionConverters._
     preRestart(reason, message.asJava)

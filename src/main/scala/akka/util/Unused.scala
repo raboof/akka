@@ -4,7 +4,6 @@
 
 package akka.util
 
-import com.github.ghik.silencer.silent
 
 import akka.annotation.InternalApi
 
@@ -24,5 +23,4 @@ import akka.annotation.InternalApi
  *
  * INTERNAL API
  */
-@silent
 @InternalApi private[akka] class unused extends deprecated("unused", "")

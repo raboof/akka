@@ -15,7 +15,6 @@ import akka.util.Helpers.Requiring
 import akka.util.ByteString
 import akka.actor._
 import akka.util.ccompat._
-import com.github.ghik.silencer.silent
 
 /**
  * UDP Extension for Akka’s IO layer.
@@ -98,7 +97,6 @@ object Udp extends ExtensionId[UdpExt] with ExtensionIdProvider {
    * The listener actor for the newly bound port will reply with a [[Bound]]
    * message, or the manager will reply with a [[CommandFailed]] message.
    */
-  @silent
   final case class Bind(
       handler: ActorRef,
       localAddress: InetSocketAddress,
@@ -122,7 +120,6 @@ object Udp extends ExtensionId[UdpExt] with ExtensionIdProvider {
    * The “simple sender” will not stop itself, you will have to send it a [[akka.actor.PoisonPill]]
    * when you want to close the socket.
    */
-  @silent
   case class SimpleSender(options: immutable.Traversable[SocketOption] = Nil) extends Command
   object SimpleSender extends SimpleSender(Nil)
 
