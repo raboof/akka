@@ -769,6 +769,47 @@ class TcpSpec extends StreamSpec("""
       }
     }
 
+    "allow waiting for the response to stream to the network before shutting down" in assertAllStagesStopped {
+      val serverSystem = ActorSystem("server")
+      val clientSystem = ActorSystem("client")
+
+      val dataForServerToSend = Source.repeat(ByteString(1,2,3,4,5)).take(100)
+      val shutdownWhenTerminated = Flow[ByteString]
+          .watchTermination() { (_, termination) =>
+            implicit val ec = serverSystem.dispatcher
+            termination.foreach { _ =>
+              log.warning("Terminating actor system")
+              TestKit.shutdownActorSystem(serverSystem)
+            }
+            Done
+          }
+        val moreLogic = Flow[ByteString].async.throttle(100, 1.second)
+
+      try {
+        val binding = Tcp(serverSystem)
+          .bind("127.0.0.1", 5555)
+          .toMat(Sink.foreach { connection =>
+            connection.flow
+              .join(Flow.fromSinkAndSource(
+                Sink.ignore,
+                dataForServerToSend.via(shutdownWhenTerminated).via(moreLogic)
+              ))
+              .run()(SystemMaterializer(serverSystem).materializer)
+          })(Keep.left)
+          .run()(SystemMaterializer(serverSystem).materializer)
+          .futureValue
+
+        val response = Source.empty
+          .via(Tcp(clientSystem).outgoingConnection(binding.localAddress))
+          .runFold(0)(_ + _.size)(SystemMaterializer(clientSystem).materializer)
+
+        response.futureValue should be(500)
+      } finally {
+        TestKit.shutdownActorSystem(serverSystem)
+        TestKit.shutdownActorSystem(clientSystem)
+      }
+    }
+
     "handle single connection when connection flow is immediately cancelled" in assertAllStagesStopped {
       implicit val ec: ExecutionContext = system.dispatcher
 
