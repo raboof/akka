@@ -53,6 +53,27 @@ class TlsTcpWithCrappyRSAWithMD5OnlyHereToMakeSureThingsWorkSpec
     }
     """))
 
+class TlsTcpWithRefreshingProviderSpec
+    extends TlsTcpSpec(ConfigFactory.parseString(s"""
+    akka.remote.artery.ssl {
+      ssl-engine-provider = "akka.remote.artery.tcp.RefreshingConfigSSLEngineProvider"
+      refreshing-ssl-engine {
+        key-file = ${getClass.getClassLoader.getResource("ssl/pem/pkcs1.pem").getPath}
+        # TODO ideally we could use different certificates for the server and client roles
+        cert-file = ${getClass.getClassLoader.getResource("ssl/pem/certificate.pem").getPath}
+        ca-cert-file = ${getClass.getClassLoader.getResource("ssl/pem/certificate.pem").getPath}
+        ssl-context-cache-ttl = 1d
+
+        # TODO duplicated from config-ssl-engine - let's see if we can consolidate that?
+        protocol = $${akka.remote.artery.ssl.config-ssl-engine.protocol}
+        enabled-algorithms = $${akka.remote.artery.ssl.config-ssl-engine.enabled-algorithms}
+        random-number-generator = $${akka.remote.artery.ssl.config-ssl-engine.random-number-generator}
+        hostname-verification = off
+        require-mutual-authentication = on
+      }
+    }
+    """))
+
 object TlsTcpSpec {
 
   lazy val config: Config = {

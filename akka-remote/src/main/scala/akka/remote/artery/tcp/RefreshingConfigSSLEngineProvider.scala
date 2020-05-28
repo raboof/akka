@@ -26,7 +26,7 @@ final class RefreshingConfigSSLEngineProvider(val config: Config) extends SSLEng
   import RefreshingConfigSSLEngineProvider._
 
   def this(system: ActorSystem) =
-    this(system.settings.config.getConfig("akka.remote.artery.ssl.tls-magic-engine"))
+    this(system.settings.config.getConfig("akka.remote.artery.ssl.refreshing-ssl-engine"))
 
   private val contextRef = new AtomicReference[Option[CachedContext]](None)
 
@@ -58,7 +58,6 @@ final class RefreshingConfigSSLEngineProvider(val config: Config) extends SSLEng
       val certFactory = CertificateFactory.getInstance("X.509")
       val cert = certFactory.generateCertificate(new FileInputStream(SSLCertFile)).asInstanceOf[X509Certificate]
       val cacert = certFactory.generateCertificate(new FileInputStream(SSLCACertFile))
-
       val keyStore = KeyStore.getInstance("JKS")
       keyStore.load(null)
       // Load the private key
@@ -118,7 +117,6 @@ final class RefreshingConfigSSLEngineProvider(val config: Config) extends SSLEng
   }
 
   private def createSSLEngine(sslContext: SSLContext, role: TLSRole, hostname: String, port: Int): SSLEngine = {
-
     val engine = sslContext.createSSLEngine(hostname, port)
 
     engine.setUseClientMode(role == akka.stream.Client)
