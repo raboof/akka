@@ -4,29 +4,28 @@
 
 package akka.stream.io
 
-import java.io.IOException
+import java.io.{ BufferedOutputStream, IOException, OutputStream }
 import java.lang.management.ManagementFactory
 import java.util.concurrent.TimeoutException
-
-import akka.actor.ActorSystem
-import akka.stream.Attributes.inputBuffer
-import akka.stream._
-import akka.stream.impl.{ PhasedFusingActorMaterializer, StreamSupervisor }
-import akka.stream.impl.StreamSupervisor.Children
-import akka.stream.impl.io.OutputStreamSourceStage
-import akka.stream.scaladsl.{ Keep, Sink, StreamConverters }
-import akka.stream.testkit.Utils._
-import akka.stream.testkit.scaladsl.StreamTestKit._
-import akka.stream.testkit._
-import akka.stream.testkit.scaladsl.TestSink
-import akka.testkit.TestProbe
-import akka.util.ByteString
 
 import scala.concurrent.Await
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration.Zero
 import scala.concurrent.duration._
 import scala.util.Random
+import scala.util.Success
+import akka.Done
+import akka.stream.Attributes.inputBuffer
+import akka.stream._
+import akka.stream.impl.io.OutputStreamSourceStage
+import akka.stream.scaladsl.{ Keep, Sink, Source, StreamConverters }
+import akka.stream.testkit.Utils._
+import akka.stream.testkit.scaladsl.StreamTestKit._
+import akka.stream.testkit._
+import akka.stream.testkit.scaladsl.TestSink
+import akka.testkit.TestProbe
+import akka.util.ByteString
+import org.apache.commons.io.output.CountingOutputStream
 
 class OutputStreamSourceSpec extends StreamSpec(UnboundedMailboxConfig) {
 
@@ -83,6 +82,42 @@ class OutputStreamSourceSpec extends StreamSpec(UnboundedMailboxConfig) {
         outputStream.write(bytesArray)
         outputStream.close()
         result.futureValue should be(ByteString(bytesArray))
+      }
+    }
+
+    // https://github.com/akka/akka/issues/28280
+    "not truncate the stream on close with metering" in assertAllStagesStopped {
+      implicit val ec: scala.concurrent.ExecutionContext = system.dispatcher
+
+      def pipe(f: OutputStream => Unit): Source[ByteString, Any] = {
+        StreamConverters.asOutputStream(15.seconds).mapMaterializedValue { os =>
+          val metered = new CountingOutputStream(new BufferedOutputStream(os, 2 << 13))
+          Future {
+            scala.concurrent.blocking(f(metered))
+            IOResult(metered.getCount, Success(Done))
+          }.andThen {
+            case _ =>
+              try metered.flush() finally metered.close()
+          }
+        }
+      }
+
+      val futures = for (i <- 0 to 10000) yield {
+        pipe(os => {
+          os.write(i)
+          os.write(i)
+          os.write(i)
+          os.write(i)
+          os.write(Array.fill(1000)(i.toByte))
+          os.write(i)
+          os.write(i)
+          os.write(i)
+          os.write(i)
+        }).runFold(0)((acc, bs) => acc + bs.size)
+      }
+      val results = Await.result(Future.sequence(futures), 30.seconds)
+      for (result <- results) {
+        result should be(1008)
       }
     }
 
