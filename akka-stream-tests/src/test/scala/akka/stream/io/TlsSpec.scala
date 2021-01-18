@@ -469,6 +469,19 @@ class TlsSpec extends StreamSpec(TlsSpec.configOverrides) with WithLogCapturing 
           clientErrText should equal("General SSLEngine problem")
       }
 
+      "fail the stream with an error when receiving an invalid handshake" in {
+        val echo = Flow.fromFunction[SslTlsInbound, SslTlsOutbound]({
+          case _: SessionTruncated => SendBytes(ByteString("truncated"))
+          case SessionBytes(_, b) => SendBytes(b)
+        })
+        val server = serverTls(EagerClose).reversed.join(echo)
+
+        val firstResult = Source.single(ByteString("Hello, this is invalid!"))
+          .via(server)
+          .runWith(Sink.head)
+        firstResult.failed.futureValue.getMessage should be("Unrecognized SSL message, plaintext connection?")
+      }
+
       "reliably cancel subscriptions when TransportIn fails early" in assertAllStagesStopped {
         val ex = new Exception("hello")
         val (sub, out1, out2) =
